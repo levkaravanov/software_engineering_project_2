@@ -9,7 +9,7 @@ import java.util.ResourceBundle;
 import java.util.Scanner;
 
 public class ShoppingCartApplication {
-    private static final String BUNDLE_NAME = "MessagesBundle";
+    private static final String BUNDLE_NAME = "i18n.MessagesBundle";
 
     private final CartCalculator cartCalculator;
 
