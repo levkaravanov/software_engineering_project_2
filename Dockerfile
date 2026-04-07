@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM bellsoft/liberica-openjdk-debian:17
 
 WORKDIR /app
 

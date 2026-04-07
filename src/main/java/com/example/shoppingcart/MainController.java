@@ -1,0 +1,138 @@
+package com.example.shoppingcart;
+
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+
+public class MainController {
+
+    private static final String BUNDLE_NAME = "i18n.MessagesBundle";
+
+    @FXML private Label languageLabel;
+    @FXML private ChoiceBox<String> languageChoice;
+    @FXML private Label itemCountLabel;
+    @FXML private TextField itemCountField;
+    @FXML private Button generateButton;
+    @FXML private VBox itemsContainer;
+    @FXML private Button calculateButton;
+    @FXML private Label totalLabel;
+    @FXML private VBox root;
+
+    private final CartCalculator calculator = new CartCalculator();
+    private final List<ItemRow> rows = new ArrayList<>();
+    private ResourceBundle messages;
+    private Locale currentLocale = Locale.US;
+
+    @FXML
+    private void initialize() {
+        languageChoice.setItems(FXCollections.observableArrayList(
+                "English", "Suomi", "Svenska", "\u65e5\u672c\u8a9e", "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"));
+        languageChoice.getSelectionModel().select(0);
+        languageChoice.getSelectionModel().selectedIndexProperty()
+                .addListener((obs, oldIndex, newIndex) -> {
+                    currentLocale = LanguageSelector.localeByIndex(newIndex.intValue());
+                    reloadMessages();
+                });
+        reloadMessages();
+    }
+
+    private void reloadMessages() {
+        messages = ResourceBundle.getBundle(BUNDLE_NAME, currentLocale);
+        root.setNodeOrientation("ar".equals(currentLocale.getLanguage())
+                ? NodeOrientation.RIGHT_TO_LEFT
+                : NodeOrientation.LEFT_TO_RIGHT);
+        languageLabel.setText(messages.getString("ui.selectLanguage"));
+        itemCountLabel.setText(messages.getString("prompt.itemCount"));
+        generateButton.setText(messages.getString("button.enterItems"));
+        calculateButton.setText(messages.getString("button.calculate"));
+        totalLabel.setText(messages.getString("message.totalCost") + " ");
+        for (ItemRow row : rows) {
+            row.updateLabels(messages);
+        }
+    }
+
+    @FXML
+    private void onGenerateItems() {
+        itemsContainer.getChildren().clear();
+        rows.clear();
+        int count;
+        try {
+            count = Integer.parseInt(itemCountField.getText().trim());
+            if (count < 0) {
+                throw new NumberFormatException();
+            }
+        } catch (NumberFormatException ex) {
+            totalLabel.setText(messages.getString("error.nonNegativeInteger"));
+            return;
+        }
+        for (int i = 1; i <= count; i++) {
+            ItemRow row = new ItemRow(i, messages);
+            rows.add(row);
+            itemsContainer.getChildren().add(row.getNode());
+        }
+        totalLabel.setText(messages.getString("message.totalCost") + " ");
+    }
+
+    @FXML
+    private void onCalculate() {
+        try {
+            List<CartItem> items = new ArrayList<>();
+            for (ItemRow row : rows) {
+                items.add(row.toCartItem());
+            }
+            BigDecimal total = calculator.calculateCartTotal(items);
+            NumberFormat fmt = NumberFormat.getNumberInstance(currentLocale);
+            fmt.setMinimumFractionDigits(2);
+            fmt.setMaximumFractionDigits(2);
+            totalLabel.setText(messages.getString("message.totalCost") + " " + fmt.format(total));
+        } catch (IllegalArgumentException ex) {
+            totalLabel.setText(messages.getString("error.nonNegativeDecimal"));
+        }
+    }
+
+    private static final class ItemRow {
+        private final int index;
+        private final Label label = new Label();
+        private final TextField priceField = new TextField();
+        private final TextField quantityField = new TextField();
+        private final HBox node;
+
+        ItemRow(int index, ResourceBundle messages) {
+            this.index = index;
+            priceField.setPrefWidth(140);
+            quantityField.setPrefWidth(80);
+            label.setMinWidth(80);
+            node = new HBox(8, label, priceField, quantityField);
+            updateLabels(messages);
+        }
+
+        void updateLabels(ResourceBundle messages) {
+            label.setText(String.format(messages.getString("label.itemNumber"), index));
+            priceField.setPromptText(messages.getString("prompt.price"));
+            quantityField.setPromptText(messages.getString("prompt.quantity"));
+        }
+
+        HBox getNode() {
+            return node;
+        }
+
+        CartItem toCartItem() {
+            BigDecimal price = new BigDecimal(priceField.getText().trim().replace(',', '.'));
+            int qty = Integer.parseInt(quantityField.getText().trim());
+            return new CartItem(price, qty);
+        }
+    }
+}

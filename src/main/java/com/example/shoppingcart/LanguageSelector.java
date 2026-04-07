@@ -4,12 +4,24 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class LanguageSelector {
+
+    private static final Locale ARABIC = Locale.forLanguageTag("ar-AR");
+
     private static final Map<String, Locale> SUPPORTED_LOCALES = Map.of(
             "en", Locale.US,
             "fi", Locale.forLanguageTag("fi-FI"),
             "sv", Locale.forLanguageTag("sv-SE"),
-            "ja", Locale.JAPAN
+            "ja", Locale.JAPAN,
+            "ar", ARABIC
     );
+
+    private static final Locale[] BY_INDEX = {
+            Locale.US,
+            Locale.forLanguageTag("fi-FI"),
+            Locale.forLanguageTag("sv-SE"),
+            Locale.JAPAN,
+            ARABIC
+    };
 
     private LanguageSelector() {
     }
@@ -18,7 +30,13 @@ public final class LanguageSelector {
         if (input == null) {
             return Locale.US;
         }
-
         return SUPPORTED_LOCALES.getOrDefault(input.trim().toLowerCase(Locale.ROOT), Locale.US);
+    }
+
+    public static Locale localeByIndex(int index) {
+        if (index < 0 || index >= BY_INDEX.length) {
+            return Locale.US;
+        }
+        return BY_INDEX[index];
     }
 }
