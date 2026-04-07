@@ -54,16 +54,3 @@ Create a `dockerhub` credential (`Username with password`) in Jenkins:
 - Password: Docker Hub access token
 
 Optional env variable: `IMAGE_NAME` (defaults to `shopping-cart`)
-
-## Submission Checklist
-
-- [x] JavaFX GUI with localization (5 languages)
-- [x] RTL support for Arabic
-- [x] JUnit 5 unit tests
-- [x] JaCoCo test coverage
-- [x] Dockerfile
-- [x] Jenkinsfile (CI/CD pipeline)
-- [ ] Push project to GitHub
-- [ ] Build and push Docker image to Docker Hub
-- [ ] Screenshots of UI (all 5 languages, name visible in window title)
-- [ ] Submit in Oma
