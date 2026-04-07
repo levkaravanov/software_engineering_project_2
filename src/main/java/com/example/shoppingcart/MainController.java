@@ -3,9 +3,10 @@ package com.example.shoppingcart;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.Map;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -19,8 +20,6 @@ import javafx.scene.layout.VBox;
 
 public class MainController {
 
-    private static final String BUNDLE_NAME = "i18n.MessagesBundle";
-
     @FXML private Label languageLabel;
     @FXML private ChoiceBox<String> languageChoice;
     @FXML private Label itemCountLabel;
@@ -32,8 +31,10 @@ public class MainController {
     @FXML private VBox root;
 
     private final CartCalculator calculator = new CartCalculator();
+    private final LocalizationService localizationService = new LocalizationService();
+    private final CartService cartService = new CartService();
     private final List<ItemRow> rows = new ArrayList<>();
-    private ResourceBundle messages;
+    private Map<String, String> messages = new HashMap<>();
     private Locale currentLocale = Locale.US;
 
     @FXML
@@ -50,15 +51,15 @@ public class MainController {
     }
 
     private void reloadMessages() {
-        messages = ResourceBundle.getBundle(BUNDLE_NAME, currentLocale);
+        messages = localizationService.getStrings(currentLocale.getLanguage());
         root.setNodeOrientation("ar".equals(currentLocale.getLanguage())
                 ? NodeOrientation.RIGHT_TO_LEFT
                 : NodeOrientation.LEFT_TO_RIGHT);
-        languageLabel.setText(messages.getString("ui.selectLanguage"));
-        itemCountLabel.setText(messages.getString("prompt.itemCount"));
-        generateButton.setText(messages.getString("button.enterItems"));
-        calculateButton.setText(messages.getString("button.calculate"));
-        totalLabel.setText(messages.getString("message.totalCost") + " ");
+        languageLabel.setText(messages.getOrDefault("ui.selectLanguage", "Select language:"));
+        itemCountLabel.setText(messages.getOrDefault("prompt.itemCount", "Number of items:"));
+        generateButton.setText(messages.getOrDefault("button.enterItems", "Enter items"));
+        calculateButton.setText(messages.getOrDefault("button.calculate", "Calculate total"));
+        totalLabel.setText(messages.getOrDefault("message.totalCost", "Total cost:") + " ");
         for (ItemRow row : rows) {
             row.updateLabels(messages);
         }
@@ -75,7 +76,7 @@ public class MainController {
                 throw new NumberFormatException();
             }
         } catch (NumberFormatException ex) {
-            totalLabel.setText(messages.getString("error.nonNegativeInteger"));
+            totalLabel.setText(messages.getOrDefault("error.nonNegativeInteger", "Please enter a non-negative whole number."));
             return;
         }
         for (int i = 1; i <= count; i++) {
@@ -83,7 +84,7 @@ public class MainController {
             rows.add(row);
             itemsContainer.getChildren().add(row.getNode());
         }
-        totalLabel.setText(messages.getString("message.totalCost") + " ");
+        totalLabel.setText(messages.getOrDefault("message.totalCost", "Total cost:") + " ");
     }
 
     @FXML
@@ -97,9 +98,10 @@ public class MainController {
             NumberFormat fmt = NumberFormat.getNumberInstance(currentLocale);
             fmt.setMinimumFractionDigits(2);
             fmt.setMaximumFractionDigits(2);
-            totalLabel.setText(messages.getString("message.totalCost") + " " + fmt.format(total));
+            totalLabel.setText(messages.getOrDefault("message.totalCost", "Total cost:") + " " + fmt.format(total));
+            cartService.saveCart(items.size(), total.doubleValue(), currentLocale.getLanguage(), items);
         } catch (IllegalArgumentException ex) {
-            totalLabel.setText(messages.getString("error.nonNegativeDecimal"));
+            totalLabel.setText(messages.getOrDefault("error.nonNegativeDecimal", "Please enter a non-negative price."));
         }
     }
 
@@ -110,7 +112,7 @@ public class MainController {
         private final TextField quantityField = new TextField();
         private final HBox node;
 
-        ItemRow(int index, ResourceBundle messages) {
+        ItemRow(int index, Map<String, String> messages) {
             this.index = index;
             priceField.setPrefWidth(140);
             quantityField.setPrefWidth(80);
@@ -119,10 +121,10 @@ public class MainController {
             updateLabels(messages);
         }
 
-        void updateLabels(ResourceBundle messages) {
-            label.setText(String.format(messages.getString("label.itemNumber"), index));
-            priceField.setPromptText(messages.getString("prompt.price"));
-            quantityField.setPromptText(messages.getString("prompt.quantity"));
+        void updateLabels(Map<String, String> messages) {
+            label.setText(String.format(messages.getOrDefault("label.itemNumber", "Item %d"), index));
+            priceField.setPromptText(messages.getOrDefault("prompt.price", "Price"));
+            quantityField.setPromptText(messages.getOrDefault("prompt.quantity", "Quantity"));
         }
 
         HBox getNode() {
