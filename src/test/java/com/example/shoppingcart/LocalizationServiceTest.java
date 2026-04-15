@@ -100,4 +100,33 @@ class LocalizationServiceTest {
         assertTrue(strings.isEmpty());
         assertTrue(handler.contains(Level.SEVERE, "Failed to load localization strings"));
     }
+
+    @Test
+    void defaultConstructorCanBeCreatedWhenSystemPropertiesArePresent() {
+        String previousUrl = System.getProperty(DatabaseConfig.URL_KEY);
+        String previousUser = System.getProperty(DatabaseConfig.USER_KEY);
+        String previousPassword = System.getProperty(DatabaseConfig.PASSWORD_KEY);
+
+        try {
+            System.setProperty(DatabaseConfig.URL_KEY, "jdbc:test");
+            System.setProperty(DatabaseConfig.USER_KEY, "db-user");
+            System.setProperty(DatabaseConfig.PASSWORD_KEY, "db-password");
+
+            LocalizationService service = new LocalizationService();
+
+            assertEquals(LocalizationService.class, service.getClass());
+        } finally {
+            restoreProperty(DatabaseConfig.URL_KEY, previousUrl);
+            restoreProperty(DatabaseConfig.USER_KEY, previousUser);
+            restoreProperty(DatabaseConfig.PASSWORD_KEY, previousPassword);
+        }
+    }
+
+    private void restoreProperty(String key, String value) {
+        if (value == null) {
+            System.clearProperty(key);
+            return;
+        }
+        System.setProperty(key, value);
+    }
 }

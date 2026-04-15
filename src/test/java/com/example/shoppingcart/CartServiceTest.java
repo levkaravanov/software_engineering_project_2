@@ -2,6 +2,7 @@ package com.example.shoppingcart;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -117,5 +118,64 @@ class CartServiceTest {
         service.saveCart(0, 0.0, "en", List.of());
 
         assertTrue(handler.contains(Level.SEVERE, "Failed to open a database connection"));
+    }
+
+    @Test
+    void logsWhenGeneratedKeyIsMissing() throws SQLException {
+        when(connectionProvider.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(INSERT_RECORD, Statement.RETURN_GENERATED_KEYS)).thenReturn(recordStatement);
+        when(recordStatement.getGeneratedKeys()).thenReturn(generatedKeys);
+        when(generatedKeys.next()).thenReturn(false);
+
+        CartService service = new CartService(connectionProvider);
+
+        service.saveCart(0, 0.0, "en", List.of());
+
+        verify(connection).rollback();
+        assertTrue(handler.contains(Level.SEVERE, "Failed to save cart"));
+    }
+
+    @Test
+    void logsWhenRollbackFails() throws SQLException {
+        when(connectionProvider.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(INSERT_RECORD, Statement.RETURN_GENERATED_KEYS)).thenReturn(recordStatement);
+        when(recordStatement.getGeneratedKeys()).thenReturn(generatedKeys);
+        when(generatedKeys.next()).thenReturn(false);
+        doThrow(new SQLException("rollback failed")).when(connection).rollback();
+
+        CartService service = new CartService(connectionProvider);
+
+        service.saveCart(0, 0.0, "en", List.of());
+
+        assertTrue(handler.contains(Level.SEVERE, "Failed to roll back cart save transaction"));
+    }
+
+    @Test
+    void defaultConstructorCanBeCreatedWhenSystemPropertiesArePresent() {
+        String previousUrl = System.getProperty(DatabaseConfig.URL_KEY);
+        String previousUser = System.getProperty(DatabaseConfig.USER_KEY);
+        String previousPassword = System.getProperty(DatabaseConfig.PASSWORD_KEY);
+
+        try {
+            System.setProperty(DatabaseConfig.URL_KEY, "jdbc:test");
+            System.setProperty(DatabaseConfig.USER_KEY, "db-user");
+            System.setProperty(DatabaseConfig.PASSWORD_KEY, "db-password");
+
+            CartService service = new CartService();
+
+            assertTrue(service instanceof CartService);
+        } finally {
+            restoreProperty(DatabaseConfig.URL_KEY, previousUrl);
+            restoreProperty(DatabaseConfig.USER_KEY, previousUser);
+            restoreProperty(DatabaseConfig.PASSWORD_KEY, previousPassword);
+        }
+    }
+
+    private void restoreProperty(String key, String value) {
+        if (value == null) {
+            System.clearProperty(key);
+            return;
+        }
+        System.setProperty(key, value);
     }
 }
