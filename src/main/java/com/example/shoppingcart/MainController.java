@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -30,15 +31,15 @@ public class MainController {
     @FXML private Label totalLabel;
     @FXML private VBox root;
 
-    private final CartCalculator calculator = new CartCalculator();
-    private final LocalizationService localizationService = new LocalizationService();
-    private final CartService cartService = new CartService();
+    private final CartCalculator calculator;
+    private final LocalizationService localizationService;
+    private final CartService cartService;
     private final List<ItemRow> rows = new ArrayList<>();
     private Map<String, String> messages = new HashMap<>();
     private Locale currentLocale = Locale.US;
 
     @FXML
-    private void initialize() {
+    void initialize() {
         languageChoice.setItems(FXCollections.observableArrayList(
                 "English", "Suomi", "Svenska", "\u65e5\u672c\u8a9e", "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"));
         languageChoice.getSelectionModel().select(0);
@@ -48,6 +49,38 @@ public class MainController {
                     reloadMessages();
                 });
         reloadMessages();
+    }
+
+    public MainController() {
+        this(new CartCalculator(), new LocalizationService(), new CartService());
+    }
+
+    MainController(CartCalculator calculator, LocalizationService localizationService, CartService cartService) {
+        this.calculator = Objects.requireNonNull(calculator, "calculator");
+        this.localizationService = Objects.requireNonNull(localizationService, "localizationService");
+        this.cartService = Objects.requireNonNull(cartService, "cartService");
+    }
+
+    void bindView(
+            Label languageLabel,
+            ChoiceBox<String> languageChoice,
+            Label itemCountLabel,
+            TextField itemCountField,
+            Button generateButton,
+            VBox itemsContainer,
+            Button calculateButton,
+            Label totalLabel,
+            VBox root
+    ) {
+        this.languageLabel = Objects.requireNonNull(languageLabel, "languageLabel");
+        this.languageChoice = Objects.requireNonNull(languageChoice, "languageChoice");
+        this.itemCountLabel = Objects.requireNonNull(itemCountLabel, "itemCountLabel");
+        this.itemCountField = Objects.requireNonNull(itemCountField, "itemCountField");
+        this.generateButton = Objects.requireNonNull(generateButton, "generateButton");
+        this.itemsContainer = Objects.requireNonNull(itemsContainer, "itemsContainer");
+        this.calculateButton = Objects.requireNonNull(calculateButton, "calculateButton");
+        this.totalLabel = Objects.requireNonNull(totalLabel, "totalLabel");
+        this.root = Objects.requireNonNull(root, "root");
     }
 
     private void reloadMessages() {
@@ -66,7 +99,7 @@ public class MainController {
     }
 
     @FXML
-    private void onGenerateItems() {
+    void onGenerateItems() {
         itemsContainer.getChildren().clear();
         rows.clear();
         int count;
@@ -88,7 +121,7 @@ public class MainController {
     }
 
     @FXML
-    private void onCalculate() {
+    void onCalculate() {
         try {
             List<CartItem> items = new ArrayList<>();
             for (ItemRow row : rows) {

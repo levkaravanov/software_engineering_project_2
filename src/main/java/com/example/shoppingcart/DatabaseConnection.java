@@ -3,15 +3,33 @@ package com.example.shoppingcart;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Objects;
 
-public class DatabaseConnection {
+public class DatabaseConnection implements ConnectionProvider {
 
-    private static final String URL =
-            "jdbc:mariadb://localhost:3306/shopping_cart_localization?useUnicode=true&characterEncoding=UTF-8";
-    private static final String USER = "root";
-    private static final String PASSWORD = "12345";
+    @FunctionalInterface
+    interface SqlConnectionFactory {
+        Connection connect(String url, String user, String password) throws SQLException;
+    }
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+    private final DatabaseConfig config;
+    private final SqlConnectionFactory connectionFactory;
+
+    public DatabaseConnection() {
+        this(DatabaseConfig.fromSystem());
+    }
+
+    DatabaseConnection(DatabaseConfig config) {
+        this(config, DriverManager::getConnection);
+    }
+
+    DatabaseConnection(DatabaseConfig config, SqlConnectionFactory connectionFactory) {
+        this.config = Objects.requireNonNull(config, "config");
+        this.connectionFactory = Objects.requireNonNull(connectionFactory, "connectionFactory");
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return connectionFactory.connect(config.url(), config.user(), config.password());
     }
 }

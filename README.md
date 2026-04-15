@@ -29,6 +29,9 @@ JavaFX GUI shopping cart application with multi-language localization (English, 
 ## Run locally
 
 ```bash
+set -a
+source .env
+set +a
 mvn clean javafx:run
 ```
 
@@ -39,6 +42,44 @@ mvn clean verify
 ```
 
 JaCoCo HTML report: `target/site/jacoco/index.html`
+
+## SonarCloud
+
+Create `.env` in the project root using `.env.example` as a template:
+
+```bash
+cp .env.example .env
+```
+
+Fill in `SONAR_TOKEN` in `.env`, then export the variables into the current shell and run analysis:
+
+```bash
+set -a
+source .env
+set +a
+mvn clean verify sonar:sonar
+```
+
+Project key: `levkaravanov_software_engineering_project_2`
+Organization: `levkaravanov`
+Host: `https://sonarcloud.io`
+
+## Database configuration
+
+The application reads the database connection from environment variables or Java system properties:
+
+- `DB_URL`
+- `DB_USER`
+- `DB_PASSWORD`
+
+The values can be stored in `.env` and exported before running the app or tests:
+
+```bash
+cp .env.example .env
+set -a
+source .env
+set +a
+```
 
 ## Build Docker image
 
