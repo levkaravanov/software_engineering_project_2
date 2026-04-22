@@ -18,7 +18,9 @@
         <mockito.version>5.12.0</mockito.version>
         <jacoco.version>0.8.13</jacoco.version>
         <javafx.version>21.0.4</javafx.version>
+        <javafx.monocle.version>21.0.2</javafx.monocle.version>
         <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+        <maven.dependency.plugin.version>3.8.1</maven.dependency.plugin.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
         <sonar-maven-plugin.version>5.1.0.4751</sonar-maven-plugin.version>
@@ -70,6 +72,12 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>${javafx.monocle.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -93,6 +101,11 @@
                     <systemPropertyVariables>
                         <javafx.cachedir>${project.build.directory}/javafx-cache</javafx.cachedir>
                         <prism.order>sw</prism.order>
+                        <testfx.robot>glass</testfx.robot>
+                        <glass.platform>Monocle</glass.platform>
+                        <monocle.platform>Headless</monocle.platform>
+                        <headless.geometry>1600x1200-32</headless.geometry>
+                        <java.awt.headless>true</java.awt.headless>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -155,6 +168,25 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven.dependency.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-runtime-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

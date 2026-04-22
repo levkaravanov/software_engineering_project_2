@@ -5,6 +5,8 @@
 !/docs/
 docs/*
 !docs/week4-sonarqube-report.pdf
+!docs/WEEK5_JENKINS_SONAR_DOCKER_GUIDE.md
+!docs/Lev_Karavanov_Sprint7_UAT_Report.xlsx
 /.env
 /.env.*
 !/.env.example
