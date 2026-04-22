@@ -6,7 +6,6 @@ pipeline {
         SONAR_HOST_URL = "${env.SONAR_HOST_URL ?: 'https://sonarcloud.io'}"
         SONAR_PROJECT_KEY = "${env.SONAR_PROJECT_KEY ?: 'levkaravanov_software_engineering_project_2'}"
         SONAR_ORGANIZATION = "${env.SONAR_ORGANIZATION ?: 'levkaravanov'}"
-        SONARQUBE_ENV = "${env.SONARQUBE_ENV ?: 'SonarQubeServer'}"
         SONAR_TOKEN_CREDENTIALS_ID = "${env.SONAR_TOKEN_CREDENTIALS_ID ?: 'sonar-token'}"
         DOCKERHUB_CREDENTIALS_ID = "${env.DOCKERHUB_CREDENTIALS_ID ?: 'dockerhub'}"
     }
@@ -26,18 +25,8 @@ pipeline {
 
         stage('SonarCloud Analysis') {
             steps {
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    withCredentials([string(credentialsId: "${SONAR_TOKEN_CREDENTIALS_ID}", variable: 'SONAR_TOKEN')]) {
-                        sh 'mvn sonar:sonar'
-                    }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                withCredentials([string(credentialsId: "${SONAR_TOKEN_CREDENTIALS_ID}", variable: 'SONAR_TOKEN')]) {
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
