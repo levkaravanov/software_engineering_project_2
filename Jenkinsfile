@@ -19,21 +19,21 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'mvn clean verify'
+                sh 'mvn -Djavafx.platform=linux clean verify'
             }
         }
 
         stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: "${SONAR_TOKEN_CREDENTIALS_ID}", variable: 'SONAR_TOKEN')]) {
-                    sh 'mvn sonar:sonar'
+                    sh 'mvn -Djavafx.platform=linux sonar:sonar'
                 }
             }
         }
 
         stage('Package') {
             steps {
-                sh 'mvn -DskipTests package'
+                sh 'mvn -Djavafx.platform=linux -DskipTests package'
             }
         }
 

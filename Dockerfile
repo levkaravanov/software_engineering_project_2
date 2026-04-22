@@ -5,7 +5,7 @@ WORKDIR /workspace
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn -DskipTests package
+RUN mvn -Djavafx.platform=linux -DskipTests package
 
 FROM bellsoft/liberica-openjdk-debian:17
 
